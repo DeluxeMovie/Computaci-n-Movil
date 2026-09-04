@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Tema base de la ventana para modo claro. El color de la interfaz lo
+         controla Compose mediante AppTheme; este estilo solo afecta la ventana. -->
     <style name="Theme.Taller_1" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

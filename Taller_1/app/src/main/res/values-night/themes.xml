@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Tema base de la ventana para modo oscuro (se aplica automáticamente
+         cuando el sistema está en dark). -->
+    <style name="Theme.Taller_1" parent="android:Theme.Material.NoActionBar" />
+</resources>

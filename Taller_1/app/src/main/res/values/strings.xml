@@ -1,3 +1,27 @@
 <resources>
     <string name="app_name">Taller_1</string>
+
+    <!-- Pantalla de lista de productos -->
+    <string name="products_header">Productos: %1$d</string>
+    <string name="loading_products">Cargando productos…</string>
+    <string name="error_products">No se pudieron cargar los productos.</string>
+    <string name="label_category">Categoría: %1$s</string>
+    <string name="label_price">Precio: $%1$s</string>
+    <string name="label_rating">Calificación: %1$s</string>
+    <string name="content_desc_thumbnail">Imagen del producto %1$s</string>
+
+    <!-- Pantalla de detalle del producto -->
+    <string name="detail_title">Detalle del producto</string>
+    <string name="detail_field_title">Título</string>
+    <string name="detail_field_description">Descripción</string>
+    <string name="detail_field_category">Categoría</string>
+    <string name="detail_field_tags">Etiquetas</string>
+    <string name="detail_field_dimensions">Dimensiones</string>
+    <string name="detail_field_reviews">Reseñas</string>
+    <string name="detail_field_images">Imágenes</string>
+    <string name="detail_dimensions_value">Ancho %1$s · Alto %2$s · Profundidad %3$s</string>
+    <string name="detail_review_item">%1$s ★ — %2$s (%3$s)</string>
+    <string name="detail_hint_call">Toca el título para llamar</string>
+    <string name="detail_hint_sms">Toca la descripción para enviar un SMS</string>
+    <string name="back">Volver</string>
 </resources>
