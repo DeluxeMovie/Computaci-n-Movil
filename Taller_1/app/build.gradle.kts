@@ -49,7 +49,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
-    // --- Navigation 3 (librería de navegación exigida por el taller) ---
+    // --- Navigation 3 ---
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
@@ -59,14 +59,14 @@ dependencies {
     implementation(libs.compose.material.icons.core)
     implementation(libs.compose.material.icons.extended)
 
-    // --- Ktor (librería de networking exigida por el taller) ---
+    // --- Ktor ---
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.client.logging)
     implementation(libs.ktor.serialization.kotlinx.json)
 
-    // --- Coil (librería de manejo de imágenes exigida por el taller) ---
+    // --- Coil ---
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
 
