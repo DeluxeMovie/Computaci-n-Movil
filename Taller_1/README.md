@@ -29,12 +29,12 @@ app/src/main/java/com/example/taller_1/
 │   └── AppNavHost.kt            NavDisplay + entryProvider. Carga la lista una sola vez.
 ├── ui/
 │   ├── components/
-│   │   ├── ProductCard.kt       Componente reutilizable para cada ítem de la cuadrícula (sin ListItem).
+│   │   ├── ProductCard.kt       Componente reutilizable para cada ítem de la cuadrícula.
 │   │   └── DetailSection.kt     Componente reutilizable para cada campo de la pantalla de detalle.
 │   ├── screens/
 │   │   ├── ProductListScreen.kt LazyVerticalGrid + StickyHeader con el total de productos.
 │   │   └── ProductDetailScreen.kt  Muestra 7 campos del JSON y dispara los intents.
-│   └── theme/                   Color.kt, Theme.kt, Type.kt — tema claro y oscuro.
+│   └── theme/                   Color.kt, Theme.kt, Type.kt. Dynamic Color + tema claro y oscuro.
 └── util/
     └── ProductIntents.kt        Intents ACTION_DIAL (título) y ACTION_SEND "smsto:" (descripción).
 ```
@@ -47,11 +47,24 @@ app/src/main/java/com/example/taller_1/
    (nombre, categoría, precio, calificación e imagen). El `StickyHeader` muestra
    el número total de productos.
 3. Al tocar una tarjeta se navega a `ProductDetailScreen` pasando el objeto
-   `Product` completo por la ruta. Esta pantalla **no** consulta el API.
+   `Product` completo por la ruta.
 4. En el detalle:
    - tocar el **título** ejecuta `Intent.ACTION_DIAL` con el id del producto;
    - tocar la **descripción** ejecuta `Intent.ACTION_SEND` con la forma `smsto:`
      y el cuerpo `"title: description"`.
+
+## Tema (Dynamic Color / Material You)
+
+`AppTheme` selecciona el esquema de color así:
+
+- **Android 12 (API 31) o superior**: usa Dynamic Color, tomando los colores del
+  fondo de pantalla del dispositivo con `dynamicLightColorScheme` /
+  `dynamicDarkColorScheme`.
+- **Versiones anteriores**: usa la paleta de respaldo definida en `Color.kt`.
+
+En ambos casos se respeta el modo claro u oscuro del sistema
+(`isSystemInDarkTheme`). El parámetro `dynamicColor` de `AppTheme` permite
+desactivar Material You si se desea forzar la paleta propia.
 
 ## Compilación
 
