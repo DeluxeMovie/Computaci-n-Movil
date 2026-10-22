@@ -8,14 +8,11 @@ import android.provider.MediaStore
  * Utilidades para crear las fotos del recorrido en la galería del dispositivo.
  */
 object ImageFileUtils {
-    private const val IMAGE_PREFIX = "ROUTE_IMG_"
-    private const val GALLERY_FOLDER = "Taller2"
-
     /**
      * Crea el nombre de una foto nueva, por ejemplo ROUTE_IMG_1774883431126.jpg.
      */
     fun createImageName(): String {
-        return "$IMAGE_PREFIX${System.currentTimeMillis()}.jpg"
+        return "ROUTE_IMG_" + System.currentTimeMillis() + ".jpg"
     }
 
     /**
@@ -28,7 +25,7 @@ object ImageFileUtils {
             put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
             put(
                 MediaStore.Images.Media.RELATIVE_PATH,
-                "${Environment.DIRECTORY_PICTURES}/$GALLERY_FOLDER"
+                Environment.DIRECTORY_PICTURES + "/Taller2"
             )
         }
     }
