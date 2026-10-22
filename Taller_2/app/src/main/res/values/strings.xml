@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Taller 2</string>
+
+    <!-- Permisos -->
+    <string name="camera_permission_denied">Lo sentimos, se necesita el permiso de la cámara para tomar fotos</string>
+    <string name="location_permission_denied">Lo sentimos, se necesita el permiso de ubicación para seguir tu recorrido</string>
+    <string name="grant_permission">Conceder permiso</string>
+    <string name="open_settings">Abrir ajustes</string>
+
+    <!-- Cámara -->
+    <string name="switch_camera">Cambiar entre cámara frontal y trasera</string>
+    <string name="take_photo">Tomar foto</string>
+    <string name="photo_error">No se pudo tomar la foto</string>
+    <string name="photos_empty">Aún no hay fotos en este recorrido</string>
+    <string name="photo_description">Foto tomada durante el recorrido</string>
+
+    <!-- Mapa -->
+    <string name="start_route">Iniciar recorrido</string>
+    <string name="stop_route">Detener recorrido</string>
+    <string name="clear_route">Borrar recorrido</string>
+    <string name="center_on_location">Centrar en mi ubicación</string>
+</resources>
