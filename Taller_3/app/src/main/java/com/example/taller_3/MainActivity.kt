@@ -4,13 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.example.taller_3.navigation.NavHost
 import com.example.taller_3.ui.theme.Taller_3Theme
 
 class MainActivity : ComponentActivity() {
@@ -19,29 +13,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Taller_3Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                NavHost()
             }
         }
-    }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    Taller_3Theme {
-        Greeting("Android")
+        // Use Firebase emulator for testing
+//        val host  = "10.195.69.141"
+//        try {
+//            Firebase.auth.useEmulator(host, 9099) // Firebase Auth Emulator
+//            Log.d("MainActivity", "Using Firebase Auth Emulator at $host:9000")
+//        } catch (e: Exception) {
+//            Log.e("MainActivity", "Error setting up Firebase Auth Emulator", e)
+//        }
     }
 }
