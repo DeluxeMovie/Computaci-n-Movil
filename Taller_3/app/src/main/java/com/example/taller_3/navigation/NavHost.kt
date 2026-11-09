@@ -118,12 +118,6 @@ fun NavHost(modifier: Modifier = Modifier) {
                             modifier = Modifier.padding(vertical = 16.dp)
                         )
                         NavigationDrawerItem(
-                            label = { Text(text = "Home") },
-                            icon = { Icon(Icons.Outlined.Home, contentDescription = null) },
-                            selected = backStack.lastOrNull() == Routes.Home,
-                            onClick = { backStack.navigate(Routes.Home) }
-                        )
-                        NavigationDrawerItem(
                             label = { Text(text = "Profile") },
                             icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
                             selected = backStack.lastOrNull() == Routes.Profile,
@@ -238,7 +232,7 @@ fun NavHost(modifier: Modifier = Modifier) {
                         }
 
                         is Routes.Profile -> NavEntry(key) {
-                            ProfileScreen(viewModel = authViewModel)
+                            ProfileScreen()
                         }
 
                         else -> {

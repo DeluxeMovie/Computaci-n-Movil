@@ -26,14 +26,16 @@ fun PasswordField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    label: String = "Password",
+    validate: Boolean = true,
 ) {
     var showPassword by rememberSaveable { mutableStateOf(false) }
-    val invalid = value.isNotEmpty() && !isValidPassword(value)
+    val invalid = validate && value.isNotEmpty() && !isValidPassword(value)
 
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text("Password") },
+        label = { Text(label) },
         singleLine = true,
         enabled = enabled,
         isError = invalid,
