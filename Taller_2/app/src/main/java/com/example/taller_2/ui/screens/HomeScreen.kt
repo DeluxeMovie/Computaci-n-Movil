@@ -113,7 +113,7 @@ fun HomeScreen(
                 photosViewModel.clearPhotos()
             },
             modifier = Modifier
-                .weight(if (isPortrait) 1.5f else 2f)
+                .weight(if (isPortrait) 1f else 2f)
                 .fillMaxHeight()
         )
         CameraRegion(
