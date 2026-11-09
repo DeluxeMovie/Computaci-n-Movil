@@ -1,6 +1,8 @@
 package com.example.taller_3.viewmodels
 
 import androidx.lifecycle.ViewModel
+import com.example.taller_3.models.User
+import com.example.taller_3.repository.UserRepository
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -27,6 +29,7 @@ sealed interface AuthEvent {
 
 class AuthViewModel(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
+    private val userRepository: UserRepository = UserRepository(),
 ) : ViewModel() {
     private val _state = MutableStateFlow<AuthState>(
         auth.currentUser?.let { AuthState.Authenticated(it) } ?: AuthState.Idle
@@ -49,13 +52,31 @@ class AuthViewModel(
     private val _events = Channel<AuthEvent>(Channel.BUFFERED)
     val events: Flow<AuthEvent> = _events.receiveAsFlow()
 
-    fun register(email: String, password: String) {
+    fun register(name: String, email: String, phone: String, password: String) {
         if (!validate(email, password)) return
+        if (name.isBlank() || phone.isBlank()) {
+            _state.value = AuthState.Error("Name and phone number are required")
+            return
+        }
         _state.value = AuthState.Loading
+        var createdUser: FirebaseUser? = null
         auth.createUserWithEmailAndPassword(email.trim(), password)
+            .onSuccessTask { result ->
+                val user = result.user!!
+                createdUser = user
+                // Online y ubicación quedan con sus valores por defecto, no se piden en el registro
+                userRepository.saveUser(user.uid, User(name = name, email = email.trim(), phone = phone))
+                    .continueWith { user }
+            }
             .addOnCompleteListener { task ->
-                _state.value = authResult(task.isSuccessful, if (task.isSuccessful) task.result?.user else null, task.exception)
-                if (_state.value is AuthState.Authenticated) _events.trySend(AuthEvent.NavigateToHome)
+                if (task.isSuccessful) {
+                    _state.value = AuthState.Authenticated(task.result)
+                    _events.trySend(AuthEvent.NavigateToHome)
+                } else {
+                    // Si falló guardar los datos, se elimina la cuenta para no dejarla incompleta
+                    createdUser?.delete()
+                    _state.value = AuthState.Error(task.exception?.localizedMessage ?: "Unknown error")
+                }
             }
     }
 

@@ -1,18 +1,12 @@
 package com.example.taller_3.ui.components
 
-import android.util.Patterns
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -25,16 +19,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-
-private val PASSWORD_REGEX = Regex("^(?=.*[^A-Za-z0-9\\s]).{8,}$")
-
-private fun isValidEmail(email: String) = Patterns.EMAIL_ADDRESS.matcher(email).matches()
-
-private fun isValidPassword(password: String) = PASSWORD_REGEX.matches(password)
+import com.example.taller_3.utils.isValidEmail
+import com.example.taller_3.utils.isValidPassword
 
 @Composable
 fun LoginForm(
@@ -46,10 +34,8 @@ fun LoginForm(
 ) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
-    var showPassword by rememberSaveable { mutableStateOf(false) }
 
     val emailInvalid = email.isNotEmpty() && !isValidEmail(email)
-    val passwordInvalid = password.isNotEmpty() && !isValidPassword(password)
 
     Column(
         modifier = modifier
@@ -68,29 +54,10 @@ fun LoginForm(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth(),
         )
-        OutlinedTextField(
+        PasswordField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
-            singleLine = true,
             enabled = enabled,
-            isError = passwordInvalid,
-            supportingText = {
-                if (passwordInvalid) Text("At least 8 characters and one special symbol")
-            },
-            visualTransformation = if (showPassword) VisualTransformation.None
-            else PasswordVisualTransformation(),
-            trailingIcon = {
-                IconButton(onClick = { showPassword = !showPassword }, enabled = enabled) {
-                    Icon(
-                        imageVector = if (showPassword) Icons.Filled.VisibilityOff
-                        else Icons.Filled.Visibility,
-                        contentDescription = if (showPassword) "Hide password" else "Show password",
-                    )
-                }
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth(),
         )
         Row(
             modifier = Modifier.fillMaxWidth(),

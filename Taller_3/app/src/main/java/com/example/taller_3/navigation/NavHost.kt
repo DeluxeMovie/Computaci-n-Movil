@@ -228,7 +228,7 @@ fun NavHost(modifier: Modifier = Modifier) {
 
                         is Routes.Register -> NavEntry(key) {
                             RegisterScreen(
-                                goHome = { backStack.navigate(Routes.Home) },
+                                goHome = { backStack.navigate(Routes.Home, clearStack = true) },
                                 viewModel = authViewModel
                             )
                         }
