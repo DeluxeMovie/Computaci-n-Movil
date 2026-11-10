@@ -74,6 +74,7 @@ private fun NavBackStack<NavKey>.navigate(route: Routes, clearStack: Boolean = f
 fun NavHost(modifier: Modifier = Modifier) {
     val authViewModel: AuthViewModel = viewModel()
     val currentUser by authViewModel.currentUser.collectAsState()
+    val profile by authViewModel.profile.collectAsState()
 
     val backStack = rememberNavBackStack(
         if (currentUser != null) Routes.Home else Routes.Login
@@ -110,8 +111,8 @@ fun NavHost(modifier: Modifier = Modifier) {
                             .verticalScroll(rememberScrollState())
                     ) {
                         UserPortrait(
-                            imageUrl = currentUser?.photoUrl?.toString(),
-                            name = currentUser?.displayName?.takeIf { it.isNotBlank() }
+                            imageUrl = profile?.photoUrl,
+                            name = profile?.name?.takeIf { it.isNotBlank() }
                                 ?: currentUser?.email
                                 ?: "User",
                             lastLogin = currentUser?.metadata?.lastSignInTimestamp?.let(DateUtil::format) ?: "-",

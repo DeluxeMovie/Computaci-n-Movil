@@ -6,6 +6,9 @@ import com.example.taller_3.repository.UserRepository
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +42,26 @@ class AuthViewModel(
     private val _currentUser = MutableStateFlow(auth.currentUser)
     val currentUser: StateFlow<FirebaseUser?> = _currentUser.asStateFlow()
 
-    private val authListener = FirebaseAuth.AuthStateListener { _currentUser.value = it.currentUser }
+    // Datos guardados en la base de datos (nombre, foto...) del usuario con sesión activa
+    private val _profile = MutableStateFlow<User?>(null)
+    val profile: StateFlow<User?> = _profile.asStateFlow()
+
+    private var observedUid: String? = null
+
+    private val profileListener = object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            _profile.value = snapshot.getValue(User::class.java)
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            _profile.value = null
+        }
+    }
+
+    private val authListener = FirebaseAuth.AuthStateListener {
+        _currentUser.value = it.currentUser
+        observeProfile(it.currentUser?.uid)
+    }
 
     init {
         auth.addAuthStateListener(authListener)
@@ -47,6 +69,16 @@ class AuthViewModel(
 
     override fun onCleared() {
         auth.removeAuthStateListener(authListener)
+        observeProfile(null)
+    }
+
+    // Cambia de usuario observado al iniciar o cerrar sesión
+    private fun observeProfile(uid: String?) {
+        if (uid == observedUid) return
+        observedUid?.let { userRepository.stopObservingUser(it, profileListener) }
+        _profile.value = null
+        observedUid = uid
+        uid?.let { userRepository.observeUser(it, profileListener) }
     }
 
     private val _events = Channel<AuthEvent>(Channel.BUFFERED)

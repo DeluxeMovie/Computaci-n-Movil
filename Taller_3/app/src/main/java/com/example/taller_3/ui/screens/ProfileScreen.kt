@@ -1,6 +1,9 @@
 package com.example.taller_3.ui.screens
 
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
@@ -26,6 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taller_3.ui.components.ChangePasswordForm
 import com.example.taller_3.ui.components.ErrorMessage
 import com.example.taller_3.ui.components.ProfileForm
+import com.example.taller_3.ui.components.ProfilePhoto
 import com.example.taller_3.viewmodels.ProfileEvent
 import com.example.taller_3.viewmodels.ProfileState
 import com.example.taller_3.viewmodels.ProfileViewModel
@@ -41,6 +45,15 @@ fun ProfileScreen(
     // Al cambiar esta llave el formulario de contraseña se vacía
     var passwordFormKey by remember { mutableIntStateOf(0) }
 
+    val photoPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            viewModel.clearError()
+            viewModel.updatePhoto(uri)
+        }
+    }
+
     DisposableEffect(viewModel) {
         viewModel.clearError()
         viewModel.startObserving()
@@ -51,6 +64,7 @@ fun ProfileScreen(
         viewModel.events.collect { event ->
             val message = when (event) {
                 ProfileEvent.ProfileUpdated -> "Profile updated"
+                ProfileEvent.PhotoUpdated -> "Photo updated"
                 ProfileEvent.PasswordChanged -> {
                     passwordFormKey++
                     "Password changed"
@@ -76,6 +90,14 @@ fun ProfileScreen(
             modifier = Modifier.padding(horizontal = 16.dp),
         )
         user?.let { currentUser ->
+            ProfilePhoto(
+                imageUrl = currentUser.photoUrl,
+                name = currentUser.name,
+                enabled = state !is ProfileState.Loading,
+                onChangePhoto = {
+                    photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                },
+            )
             ProfileForm(
                 name = currentUser.name,
                 email = currentUser.email,

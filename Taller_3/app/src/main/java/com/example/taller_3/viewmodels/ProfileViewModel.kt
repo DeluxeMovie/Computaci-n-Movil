@@ -1,5 +1,6 @@
 package com.example.taller_3.viewmodels
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import com.example.taller_3.models.User
 import com.example.taller_3.repository.UserRepository
@@ -24,6 +25,7 @@ sealed interface ProfileState {
 sealed interface ProfileEvent {
     data object ProfileUpdated : ProfileEvent
     data object PasswordChanged : ProfileEvent
+    data object PhotoUpdated : ProfileEvent
 }
 
 class ProfileViewModel(
@@ -81,6 +83,24 @@ class ProfileViewModel(
                 if (task.isSuccessful) {
                     _state.value = ProfileState.Idle
                     _events.trySend(ProfileEvent.ProfileUpdated)
+                } else {
+                    _state.value = ProfileState.Error(task.exception?.localizedMessage ?: "Unknown error")
+                }
+            }
+    }
+
+    fun updatePhoto(uri: Uri) {
+        val uid = auth.currentUser?.uid ?: return
+        _state.value = ProfileState.Loading
+        userRepository.uploadPhoto(uid, uri)
+            .onSuccessTask { url ->
+                // La URL no cambia al reemplazar la foto, el parámetro evita que Coil muestre la anterior en caché
+                userRepository.updatePhotoUrl(uid, "$url&t=${System.currentTimeMillis()}")
+            }
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    _state.value = ProfileState.Idle
+                    _events.trySend(ProfileEvent.PhotoUpdated)
                 } else {
                     _state.value = ProfileState.Error(task.exception?.localizedMessage ?: "Unknown error")
                 }
