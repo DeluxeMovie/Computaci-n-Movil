@@ -1,3 +1,54 @@
 <resources>
     <string name="app_name">Taller_3</string>
+
+    <!-- Navegación -->
+    <string name="back">Back</string>
+    <string name="menu">Menu</string>
+    <string name="profile">Profile</string>
+    <string name="logout">Logout</string>
+    <string name="user_default_name">User</string>
+    <string name="forgot_password_screen">Forgot Password Screen</string>
+
+    <!-- Formularios -->
+    <string name="name">Name</string>
+    <string name="email">Email</string>
+    <string name="phone_number">Phone number</string>
+    <string name="password">Password</string>
+    <string name="current_password">Current password</string>
+    <string name="new_password">New password</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="save_changes">Save changes</string>
+    <string name="change_password">Change password</string>
+    <string name="change_photo">Change photo</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="dismiss_error">Dismiss error</string>
+    <string name="profile_picture_of">Profile picture of %1$s</string>
+    <string name="last_login">Last login: %1$s</string>
+
+    <!-- Validaciones -->
+    <string name="invalid_email">Enter a valid email address</string>
+    <string name="invalid_phone">Enter a valid phone number</string>
+    <string name="invalid_password">At least 8 characters and one special symbol</string>
+
+    <!-- Mapa -->
+    <string name="location_on">Location on</string>
+    <string name="location_off">Location off</string>
+    <string name="you">You</string>
+    <string name="location_permission_required">Location permission is required to share your location</string>
+
+    <!-- Mensajes -->
+    <string name="profile_updated">Profile updated</string>
+    <string name="photo_updated">Photo updated</string>
+    <string name="password_changed">Password changed</string>
+    <string name="password_reset_sent">Password reset email sent</string>
+
+    <!-- Errores -->
+    <string name="error_unknown">Unknown error</string>
+    <string name="error_email_required">Email is required</string>
+    <string name="error_password_required">Password is required</string>
+    <string name="error_name_phone_required">Name and phone number are required</string>
+    <string name="error_passwords_required">Current and new password are required</string>
 </resources>

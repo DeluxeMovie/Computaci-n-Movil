@@ -1,5 +1,6 @@
 package com.example.taller_3.ui.screens
 
+import com.example.taller_3.utils.asString
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -61,7 +62,7 @@ fun LoginScreen(
                 else -> Unit
             }
             ErrorMessage(
-                message = (state as? AuthState.Error)?.message,
+                message = (state as? AuthState.Error)?.message?.asString(),
                 onDismiss = viewModel::clearError,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )

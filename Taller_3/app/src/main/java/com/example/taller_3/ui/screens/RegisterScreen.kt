@@ -1,5 +1,6 @@
 package com.example.taller_3.ui.screens
 
+import com.example.taller_3.utils.asString
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
@@ -48,7 +49,7 @@ fun RegisterScreen(
     ) {
         if (state is AuthState.Loading) CircularProgressIndicator(Modifier.padding(8.dp))
         ErrorMessage(
-            message = (state as? AuthState.Error)?.message,
+            message = (state as? AuthState.Error)?.message?.asString(),
             onDismiss = viewModel::clearError,
             modifier = Modifier.padding(horizontal = 16.dp),
         )

@@ -1,5 +1,8 @@
 package com.example.taller_3.viewmodels
 
+import com.example.taller_3.utils.toUiText
+import com.example.taller_3.utils.UiText
+import com.example.taller_3.R
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import com.example.taller_3.models.User
@@ -19,7 +22,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 sealed interface ProfileState {
     data object Idle : ProfileState
     data object Loading : ProfileState
-    data class Error(val message: String) : ProfileState
+    data class Error(val message: UiText) : ProfileState
 }
 
 sealed interface ProfileEvent {
@@ -49,7 +52,7 @@ class ProfileViewModel(
         }
 
         override fun onCancelled(error: DatabaseError) {
-            _state.value = ProfileState.Error(error.message)
+            _state.value = ProfileState.Error(UiText.Dynamic(error.message))
         }
     }
 
@@ -74,7 +77,7 @@ class ProfileViewModel(
     fun updateProfile(name: String, phone: String) {
         val uid = auth.currentUser?.uid ?: return
         if (name.isBlank() || phone.isBlank()) {
-            _state.value = ProfileState.Error("Name and phone number are required")
+            _state.value = ProfileState.Error(UiText.Resource(R.string.error_name_phone_required))
             return
         }
         _state.value = ProfileState.Loading
@@ -84,7 +87,7 @@ class ProfileViewModel(
                     _state.value = ProfileState.Idle
                     _events.trySend(ProfileEvent.ProfileUpdated)
                 } else {
-                    _state.value = ProfileState.Error(task.exception?.localizedMessage ?: "Unknown error")
+                    _state.value = ProfileState.Error(task.exception.toUiText())
                 }
             }
     }
@@ -102,7 +105,7 @@ class ProfileViewModel(
                     _state.value = ProfileState.Idle
                     _events.trySend(ProfileEvent.PhotoUpdated)
                 } else {
-                    _state.value = ProfileState.Error(task.exception?.localizedMessage ?: "Unknown error")
+                    _state.value = ProfileState.Error(task.exception.toUiText())
                 }
             }
     }
@@ -113,7 +116,7 @@ class ProfileViewModel(
         val email = firebaseUser?.email
         if (firebaseUser == null || email == null) return
         if (currentPassword.isBlank() || newPassword.isBlank()) {
-            _state.value = ProfileState.Error("Current and new password are required")
+            _state.value = ProfileState.Error(UiText.Resource(R.string.error_passwords_required))
             return
         }
         _state.value = ProfileState.Loading
@@ -124,7 +127,7 @@ class ProfileViewModel(
                     _state.value = ProfileState.Idle
                     _events.trySend(ProfileEvent.PasswordChanged)
                 } else {
-                    _state.value = ProfileState.Error(task.exception?.localizedMessage ?: "Unknown error")
+                    _state.value = ProfileState.Error(task.exception.toUiText())
                 }
             }
     }

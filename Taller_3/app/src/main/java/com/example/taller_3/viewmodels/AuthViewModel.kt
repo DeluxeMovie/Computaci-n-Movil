@@ -1,5 +1,8 @@
 package com.example.taller_3.viewmodels
 
+import com.example.taller_3.utils.toUiText
+import com.example.taller_3.utils.UiText
+import com.example.taller_3.R
 import androidx.lifecycle.ViewModel
 import com.example.taller_3.models.User
 import com.example.taller_3.repository.UserRepository
@@ -21,13 +24,13 @@ sealed interface AuthState {
     data object Loading : AuthState
     data class Authenticated(val user: FirebaseUser) : AuthState
     data class PasswordResetSent(val email: String) : AuthState
-    data class Error(val message: String) : AuthState
+    data class Error(val message: UiText) : AuthState
 }
 
 sealed interface AuthEvent {
     data object NavigateToHome : AuthEvent
     data object NavigateToLogin : AuthEvent
-    data class ShowMessage(val text: String) : AuthEvent
+    data class ShowMessage(val text: UiText) : AuthEvent
 }
 
 class AuthViewModel(
@@ -87,7 +90,7 @@ class AuthViewModel(
     fun register(name: String, email: String, phone: String, password: String) {
         if (!validate(email, password)) return
         if (name.isBlank() || phone.isBlank()) {
-            _state.value = AuthState.Error("Name and phone number are required")
+            _state.value = AuthState.Error(UiText.Resource(R.string.error_name_phone_required))
             return
         }
         _state.value = AuthState.Loading
@@ -107,7 +110,7 @@ class AuthViewModel(
                 } else {
                     // Si falló guardar los datos, se elimina la cuenta para no dejarla incompleta
                     createdUser?.delete()
-                    _state.value = AuthState.Error(task.exception?.localizedMessage ?: "Unknown error")
+                    _state.value = AuthState.Error(task.exception.toUiText())
                 }
             }
     }
@@ -124,17 +127,17 @@ class AuthViewModel(
 
     fun forgotPassword(email: String) {
         if (email.isBlank()) {
-            _state.value = AuthState.Error("Email is required")
+            _state.value = AuthState.Error(UiText.Resource(R.string.error_email_required))
             return
         }
         _state.value = AuthState.Loading
         auth.sendPasswordResetEmail(email.trim())
             .addOnCompleteListener { task ->
                 _state.value = if (task.isSuccessful) {
-                    _events.trySend(AuthEvent.ShowMessage("Password reset email sent"))
+                    _events.trySend(AuthEvent.ShowMessage(UiText.Resource(R.string.password_reset_sent)))
                     AuthState.PasswordResetSent(email.trim())
                 } else {
-                    AuthState.Error(task.exception?.localizedMessage ?: "Unknown error")
+                    AuthState.Error(task.exception.toUiText())
                 }
             }
     }
@@ -151,15 +154,15 @@ class AuthViewModel(
 
     private fun authResult(ok: Boolean, user: FirebaseUser?, e: Exception?): AuthState =
         if (ok && user != null) AuthState.Authenticated(user)
-        else AuthState.Error(e?.localizedMessage ?: "Unknown error")
+        else AuthState.Error(e.toUiText())
 
     private fun validate(email: String, password: String): Boolean {
         val error = when {
-            email.isBlank() -> "Email is required"
-            password.isBlank() -> "Password is required"
+            email.isBlank() -> R.string.error_email_required
+            password.isBlank() -> R.string.error_password_required
             else -> return true
         }
-        _state.value = AuthState.Error(error)
+        _state.value = AuthState.Error(UiText.Resource(error))
         return false
     }
 }

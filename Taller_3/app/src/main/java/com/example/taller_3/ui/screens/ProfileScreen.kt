@@ -1,5 +1,7 @@
 package com.example.taller_3.ui.screens
 
+import com.example.taller_3.utils.asString
+import com.example.taller_3.R
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -63,11 +65,11 @@ fun ProfileScreen(
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             val message = when (event) {
-                ProfileEvent.ProfileUpdated -> "Profile updated"
-                ProfileEvent.PhotoUpdated -> "Photo updated"
+                ProfileEvent.ProfileUpdated -> context.getString(R.string.profile_updated)
+                ProfileEvent.PhotoUpdated -> context.getString(R.string.photo_updated)
                 ProfileEvent.PasswordChanged -> {
                     passwordFormKey++
-                    "Password changed"
+                    context.getString(R.string.password_changed)
                 }
             }
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -85,7 +87,7 @@ fun ProfileScreen(
             CircularProgressIndicator(Modifier.padding(8.dp))
         }
         ErrorMessage(
-            message = (state as? ProfileState.Error)?.message,
+            message = (state as? ProfileState.Error)?.message?.asString(),
             onDismiss = viewModel::clearError,
             modifier = Modifier.padding(horizontal = 16.dp),
         )

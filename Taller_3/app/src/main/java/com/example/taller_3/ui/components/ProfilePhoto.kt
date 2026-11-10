@@ -1,5 +1,7 @@
 package com.example.taller_3.ui.components
 
+import com.example.taller_3.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -53,13 +55,13 @@ fun ProfilePhoto(
         } else {
             AsyncImage(
                 model = imageUrl,
-                contentDescription = "Profile picture of $name",
+                contentDescription = stringResource(R.string.profile_picture_of, name),
                 contentScale = ContentScale.Crop,
                 modifier = photoModifier,
             )
         }
         TextButton(onClick = onChangePhoto, enabled = enabled) {
-            Text("Change photo")
+            Text(stringResource(R.string.change_photo))
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.example.taller_3.ui.components
 
+import com.example.taller_3.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -55,7 +57,7 @@ fun UserPortrait(
         } else {
             AsyncImage(
                 model = imageUrl,
-                contentDescription = "Profile picture of $name",
+                contentDescription = stringResource(R.string.profile_picture_of, name),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(84.dp)
@@ -71,7 +73,7 @@ fun UserPortrait(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = "Last login: $lastLogin",
+                text = stringResource(R.string.last_login, lastLogin),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Light

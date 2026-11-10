@@ -1,5 +1,7 @@
 package com.example.taller_3.ui.components
 
+import com.example.taller_3.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,7 +47,7 @@ fun RegisterForm(
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("Name") },
+            label = { Text(stringResource(R.string.name)) },
             singleLine = true,
             enabled = enabled,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
@@ -54,22 +56,22 @@ fun RegisterForm(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.email)) },
             singleLine = true,
             enabled = enabled,
             isError = emailInvalid,
-            supportingText = { if (emailInvalid) Text("Enter a valid email address") },
+            supportingText = { if (emailInvalid) Text(stringResource(R.string.invalid_email)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth(),
         )
         OutlinedTextField(
             value = phone,
             onValueChange = { phone = it },
-            label = { Text("Phone number") },
+            label = { Text(stringResource(R.string.phone_number)) },
             singleLine = true,
             enabled = enabled,
             isError = phoneInvalid,
-            supportingText = { if (phoneInvalid) Text("Enter a valid phone number") },
+            supportingText = { if (phoneInvalid) Text(stringResource(R.string.invalid_phone)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             modifier = Modifier.fillMaxWidth(),
         )
@@ -83,7 +85,7 @@ fun RegisterForm(
             enabled = enabled && name.isNotBlank() && isValidEmail(email) &&
                     isValidPhone(phone) && isValidPassword(password),
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Register") }
+        ) { Text(stringResource(R.string.register)) }
     }
 }
 

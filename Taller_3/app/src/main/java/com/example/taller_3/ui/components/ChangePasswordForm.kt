@@ -1,5 +1,7 @@
 package com.example.taller_3.ui.components
 
+import com.example.taller_3.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,25 +34,25 @@ fun ChangePasswordForm(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Change password", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.change_password), style = MaterialTheme.typography.titleLarge)
         PasswordField(
             value = currentPassword,
             onValueChange = { currentPassword = it },
             enabled = enabled,
-            label = "Current password",
+            label = stringResource(R.string.current_password),
             validate = false,
         )
         PasswordField(
             value = newPassword,
             onValueChange = { newPassword = it },
             enabled = enabled,
-            label = "New password",
+            label = stringResource(R.string.new_password),
         )
         Button(
             onClick = { onChangePassword(currentPassword, newPassword) },
             enabled = enabled && currentPassword.isNotEmpty() && isValidPassword(newPassword),
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Change password") }
+        ) { Text(stringResource(R.string.change_password)) }
     }
 }
 

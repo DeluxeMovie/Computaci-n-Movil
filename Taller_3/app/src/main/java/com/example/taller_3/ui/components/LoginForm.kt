@@ -1,5 +1,7 @@
 package com.example.taller_3.ui.components
 
+import com.example.taller_3.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,11 +48,11 @@ fun LoginForm(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.email)) },
             singleLine = true,
             enabled = enabled,
             isError = emailInvalid,
-            supportingText = { if (emailInvalid) Text("Enter a valid email address") },
+            supportingText = { if (emailInvalid) Text(stringResource(R.string.invalid_email)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth(),
         )
@@ -67,13 +69,13 @@ fun LoginForm(
                 onClick = { onLogin(email, password) },
                 enabled = enabled && isValidEmail(email) && isValidPassword(password),
                 modifier = Modifier.weight(1f),
-            ) { Text("Login") }
+            ) { Text(stringResource(R.string.login)) }
             OutlinedButton(
                 onClick = onRegister,
                 enabled = enabled,
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Register")
+                Text(stringResource(R.string.register))
             }
         }
         TextButton(
@@ -81,7 +83,7 @@ fun LoginForm(
             enabled = enabled,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Forgot password?", color = MaterialTheme.colorScheme.primary)
+            Text(stringResource(R.string.forgot_password), color = MaterialTheme.colorScheme.primary)
         }
     }
 }

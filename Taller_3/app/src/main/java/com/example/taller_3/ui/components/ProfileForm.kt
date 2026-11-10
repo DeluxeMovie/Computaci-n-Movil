@@ -1,5 +1,7 @@
 package com.example.taller_3.ui.components
 
+import com.example.taller_3.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,11 +48,11 @@ fun ProfileForm(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Profile", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.profile), style = MaterialTheme.typography.titleLarge)
         OutlinedTextField(
             value = editedName,
             onValueChange = { editedName = it },
-            label = { Text("Name") },
+            label = { Text(stringResource(R.string.name)) },
             singleLine = true,
             enabled = enabled,
             modifier = Modifier.fillMaxWidth(),
@@ -58,7 +60,7 @@ fun ProfileForm(
         OutlinedTextField(
             value = email,
             onValueChange = {},
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.email)) },
             singleLine = true,
             readOnly = true,
             enabled = false,
@@ -67,11 +69,11 @@ fun ProfileForm(
         OutlinedTextField(
             value = editedPhone,
             onValueChange = { editedPhone = it },
-            label = { Text("Phone number") },
+            label = { Text(stringResource(R.string.phone_number)) },
             singleLine = true,
             enabled = enabled,
             isError = phoneInvalid,
-            supportingText = { if (phoneInvalid) Text("Enter a valid phone number") },
+            supportingText = { if (phoneInvalid) Text(stringResource(R.string.invalid_phone)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             modifier = Modifier.fillMaxWidth(),
         )
@@ -79,7 +81,7 @@ fun ProfileForm(
             onClick = { onSave(editedName, editedPhone) },
             enabled = enabled && changed && editedName.isNotBlank() && isValidPhone(editedPhone),
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Save changes") }
+        ) { Text(stringResource(R.string.save_changes)) }
     }
 }
 

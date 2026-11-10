@@ -1,5 +1,7 @@
 package com.example.taller_3.navigation
 
+import com.example.taller_3.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Home
@@ -57,6 +60,7 @@ import com.example.taller_3.ui.screens.ProfileScreen
 import com.example.taller_3.ui.screens.RegisterScreen
 import com.example.taller_3.utils.DateUtil
 import com.example.taller_3.viewmodels.AuthViewModel
+import com.example.taller_3.viewmodels.MapViewModel
 import kotlinx.coroutines.launch
 
 private fun NavBackStack<NavKey>.navigate(route: Routes, clearStack: Boolean = false) {
@@ -73,6 +77,7 @@ private fun NavBackStack<NavKey>.navigate(route: Routes, clearStack: Boolean = f
 @Composable
 fun NavHost(modifier: Modifier = Modifier) {
     val authViewModel: AuthViewModel = viewModel()
+    val mapViewModel: MapViewModel = viewModel()
     val currentUser by authViewModel.currentUser.collectAsState()
     val profile by authViewModel.profile.collectAsState()
 
@@ -97,7 +102,9 @@ fun NavHost(modifier: Modifier = Modifier) {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = !isPublicRoute,
+        // Los gestos solo funcionan con el drawer abierto (para cerrarlo); se abre con el botón del menú,
+        // así deslizar sobre el mapa no lo abre
+        gesturesEnabled = drawerState.isOpen,
         drawerContent = {
             ModalDrawerSheet {
                 Column(
@@ -114,21 +121,25 @@ fun NavHost(modifier: Modifier = Modifier) {
                             imageUrl = profile?.photoUrl,
                             name = profile?.name?.takeIf { it.isNotBlank() }
                                 ?: currentUser?.email
-                                ?: "User",
+                                ?: stringResource(R.string.user_default_name),
                             lastLogin = currentUser?.metadata?.lastSignInTimestamp?.let(DateUtil::format) ?: "-",
                             modifier = Modifier.padding(vertical = 16.dp)
                         )
                         NavigationDrawerItem(
-                            label = { Text(text = "Profile") },
+                            label = { Text(text = stringResource(R.string.profile)) },
                             icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
                             selected = backStack.lastOrNull() == Routes.Profile,
-                            onClick = { backStack.navigate(Routes.Profile) }
+                            onClick = {
+                                backStack.navigate(Routes.Profile)
+                                scope.launch { drawerState.close() }
+                            }
                         )
                     }
                     HorizontalDivider()
                     TextButton(
                         onClick = {
-                            authViewModel.logout()
+                            // Primero se marca al usuario fuera de línea, mientras la sesión sigue activa
+                            mapViewModel.stopSharing { authViewModel.logout() }
                             scope.launch { drawerState.close() }
                             backStack.navigate(Routes.Login, clearStack = true)
                         },
@@ -136,7 +147,7 @@ fun NavHost(modifier: Modifier = Modifier) {
                             .align(Alignment.End)
                             .padding(vertical = 8.dp)
                     ) {
-                        Text(text = "Logout")
+                        Text(text = stringResource(R.string.logout))
                         Spacer(Modifier.width(8.dp))
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Logout,
@@ -160,25 +171,37 @@ fun NavHost(modifier: Modifier = Modifier) {
                     TopAppBar(
                         title = { },
                         navigationIcon = {
-                            IconButton(onClick = {
-                                scope.launch {
-                                    drawerState.apply {
-                                        if (isClosed) open() else close()
-                                    }
+                            if (backStack.lastOrNull() == Routes.Profile) {
+                                // En el perfil se vuelve a la pantalla principal
+                                IconButton(onClick = { backStack.removeLastOrNull() }) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = stringResource(R.string.back)
+                                    )
                                 }
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Menu,
-                                    contentDescription = "Localized description"
-                                )
+                            } else {
+                                IconButton(onClick = {
+                                    scope.launch {
+                                        drawerState.apply {
+                                            if (isClosed) open() else close()
+                                        }
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Menu,
+                                        contentDescription = stringResource(R.string.menu)
+                                    )
+                                }
                             }
                         },
                         actions = {
-                            IconButton(onClick = { backStack.navigate(Routes.Profile) }) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Settings,
-                                    contentDescription = "Localized description"
-                                )
+                            if (backStack.lastOrNull() != Routes.Profile) {
+                                IconButton(onClick = { backStack.navigate(Routes.Profile) }) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Settings,
+                                        contentDescription = stringResource(R.string.profile)
+                                    )
+                                }
                             }
                         },
                         scrollBehavior = scrollBehavior

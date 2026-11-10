@@ -1,5 +1,7 @@
 package com.example.taller_3.ui.components
 
+import com.example.taller_3.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -78,7 +80,7 @@ private fun ErrorCard(
             IconButton(onClick = onDismiss) {
                 Icon(
                     imageVector = Icons.Filled.Close,
-                    contentDescription = "Dismiss error",
+                    contentDescription = stringResource(R.string.dismiss_error),
                     tint = MaterialTheme.colorScheme.error,
                 )
             }

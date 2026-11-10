@@ -1,5 +1,7 @@
 package com.example.taller_3.ui.components
 
+import com.example.taller_3.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -26,7 +28,7 @@ fun PasswordField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    label: String = "Password",
+    label: String = stringResource(R.string.password),
     validate: Boolean = true,
 ) {
     var showPassword by rememberSaveable { mutableStateOf(false) }
@@ -40,7 +42,7 @@ fun PasswordField(
         enabled = enabled,
         isError = invalid,
         supportingText = {
-            if (invalid) Text("At least 8 characters and one special symbol")
+            if (invalid) Text(stringResource(R.string.invalid_password))
         },
         visualTransformation = if (showPassword) VisualTransformation.None
         else PasswordVisualTransformation(),
@@ -49,7 +51,7 @@ fun PasswordField(
                 Icon(
                     imageVector = if (showPassword) Icons.Filled.VisibilityOff
                     else Icons.Filled.Visibility,
-                    contentDescription = if (showPassword) "Hide password" else "Show password",
+                    contentDescription = stringResource(if (showPassword) R.string.hide_password else R.string.show_password),
                 )
             }
         },

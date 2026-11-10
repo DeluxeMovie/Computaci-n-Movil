@@ -1,5 +1,7 @@
 package com.example.taller_3.ui.screens
 
+import com.example.taller_3.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -8,5 +10,5 @@ import androidx.compose.ui.Modifier
 fun ForgotPasswordScreen(
     modifier: Modifier = Modifier,
 ) {
-    Text(text = "Forgot Password Screen", modifier = modifier)
+    Text(text = stringResource(R.string.forgot_password_screen), modifier = modifier)
 }
