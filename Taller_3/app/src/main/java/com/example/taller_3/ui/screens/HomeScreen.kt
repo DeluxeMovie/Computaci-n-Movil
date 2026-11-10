@@ -23,6 +23,7 @@ import com.example.taller_3.ui.components.ErrorMessage
 import com.example.taller_3.ui.components.LocationSwitch
 import com.example.taller_3.ui.components.UsersMap
 import com.example.taller_3.utils.openAppSettings
+import com.example.taller_3.viewmodels.AuthViewModel
 import com.example.taller_3.viewmodels.MapViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -38,9 +39,11 @@ import com.google.accompanist.permissions.shouldShowRationale
 fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: MapViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel(),
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
+    val profile by authViewModel.profile.collectAsState()
     var permissionRequested by rememberSaveable { mutableStateOf(false) }
 
     // Si el usuario concede el permiso desde el diálogo, la localización se enciende
@@ -65,6 +68,9 @@ fun HomeScreen(
     Box(modifier = modifier.fillMaxSize()) {
         UsersMap(
             currentLocation = state.currentLocation,
+            route = state.route,
+            myName = profile?.name.orEmpty(),
+            myPhotoUrl = profile?.photoUrl,
             onlineUsers = state.onlineUsers,
         )
         LocationSwitch(

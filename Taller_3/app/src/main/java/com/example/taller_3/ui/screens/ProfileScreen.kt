@@ -3,9 +3,6 @@ package com.example.taller_3.ui.screens
 import com.example.taller_3.utils.asString
 import com.example.taller_3.R
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
@@ -47,15 +44,6 @@ fun ProfileScreen(
     // Al cambiar esta llave el formulario de contraseña se vacía
     var passwordFormKey by remember { mutableIntStateOf(0) }
 
-    val photoPicker = rememberLauncherForActivityResult(
-        ActivityResultContracts.PickVisualMedia()
-    ) { uri ->
-        if (uri != null) {
-            viewModel.clearError()
-            viewModel.updatePhoto(uri)
-        }
-    }
-
     DisposableEffect(viewModel) {
         viewModel.clearError()
         viewModel.startObserving()
@@ -96,8 +84,9 @@ fun ProfileScreen(
                 imageUrl = currentUser.photoUrl,
                 name = currentUser.name,
                 enabled = state !is ProfileState.Loading,
-                onChangePhoto = {
-                    photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                onPhotoTaken = { uri ->
+                    viewModel.clearError()
+                    viewModel.updatePhoto(uri)
                 },
             )
             ProfileForm(

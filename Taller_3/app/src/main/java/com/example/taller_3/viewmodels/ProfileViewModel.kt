@@ -9,9 +9,7 @@ import com.example.taller_3.models.User
 import com.example.taller_3.repository.UserRepository
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,30 +42,23 @@ class ProfileViewModel(
     private val _events = Channel<ProfileEvent>(Channel.BUFFERED)
     val events: Flow<ProfileEvent> = _events.receiveAsFlow()
 
-    private var observedUid: String? = null
-
-    private val userListener = object : ValueEventListener {
-        override fun onDataChange(snapshot: DataSnapshot) {
-            _user.value = snapshot.getValue(User::class.java)
-        }
-
-        override fun onCancelled(error: DatabaseError) {
-            _state.value = ProfileState.Error(UiText.Dynamic(error.message))
-        }
-    }
+    private var registration: ListenerRegistration? = null
 
     // Se llama al entrar a la pantalla, así siempre se observa al usuario que tiene la sesión activa
     fun startObserving() {
         val uid = auth.currentUser?.uid ?: return
         stopObserving()
         _user.value = null
-        observedUid = uid
-        userRepository.observeUser(uid, userListener)
+        registration = userRepository.observeUser(
+            uid,
+            onChange = { _user.value = it },
+            onError = { _state.value = ProfileState.Error(it.toUiText()) },
+        )
     }
 
     fun stopObserving() {
-        observedUid?.let { userRepository.stopObservingUser(it, userListener) }
-        observedUid = null
+        registration?.remove()
+        registration = null
     }
 
     override fun onCleared() {

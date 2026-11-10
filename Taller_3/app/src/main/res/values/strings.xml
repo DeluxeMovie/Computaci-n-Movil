@@ -22,6 +22,11 @@
     <string name="save_changes">Save changes</string>
     <string name="change_password">Change password</string>
     <string name="change_photo">Change photo</string>
+    <string name="close_camera">Close camera</string>
+    <string name="switch_camera">Switch camera</string>
+    <string name="take_photo">Take photo</string>
+    <string name="taking_photo">Taking photo…</string>
+    <string name="camera_permission_denied">Camera permission is required to take a photo</string>
     <string name="show_password">Show password</string>
     <string name="hide_password">Hide password</string>
     <string name="dismiss_error">Dismiss error</string>

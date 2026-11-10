@@ -9,9 +9,7 @@ import com.example.taller_3.repository.UserRepository
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,16 +48,7 @@ class AuthViewModel(
     val profile: StateFlow<User?> = _profile.asStateFlow()
 
     private var observedUid: String? = null
-
-    private val profileListener = object : ValueEventListener {
-        override fun onDataChange(snapshot: DataSnapshot) {
-            _profile.value = snapshot.getValue(User::class.java)
-        }
-
-        override fun onCancelled(error: DatabaseError) {
-            _profile.value = null
-        }
-    }
+    private var profileRegistration: ListenerRegistration? = null
 
     private val authListener = FirebaseAuth.AuthStateListener {
         _currentUser.value = it.currentUser
@@ -78,10 +67,19 @@ class AuthViewModel(
     // Cambia de usuario observado al iniciar o cerrar sesión
     private fun observeProfile(uid: String?) {
         if (uid == observedUid) return
-        observedUid?.let { userRepository.stopObservingUser(it, profileListener) }
+        profileRegistration?.remove()
+        profileRegistration = null
         _profile.value = null
         observedUid = uid
-        uid?.let { userRepository.observeUser(it, profileListener) }
+        if (uid != null) {
+            // Si la cuenta no tiene documento en Firestore se crea con el email de Auth
+            userRepository.ensureUserExists(uid, auth.currentUser?.email.orEmpty())
+            profileRegistration = userRepository.observeUser(
+                uid,
+                onChange = { _profile.value = it },
+                onError = { _profile.value = null },
+            )
+        }
     }
 
     private val _events = Channel<AuthEvent>(Channel.BUFFERED)

@@ -1,34 +1,70 @@
 package com.example.taller_3.repository
 
 import android.net.Uri
+import com.example.taller_3.models.OnlineUser
 import com.example.taller_3.models.User
 import com.google.android.gms.tasks.Task
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.Query
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.storage.FirebaseStorage
 
 class UserRepository(
-    database: FirebaseDatabase = FirebaseDatabase.getInstance(),
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(DATABASE_ID),
     storage: FirebaseStorage = FirebaseStorage.getInstance(),
 ) {
-    private val users = database.getReference("users")
-    // Máximo 100 usuarios en línea a la vez
-    private val onlineUsers: Query = users.orderByChild("online").equalTo(true).limitToFirst(MAX_ONLINE_USERS)
+    private val users = firestore.collection("users")
     private val photos = storage.reference.child("profile_photos")
 
-    fun saveUser(uid: String, user: User): Task<Void> = users.child(uid).setValue(user)
+    fun saveUser(uid: String, user: User): Task<Void> = users.document(uid).set(user)
 
-    fun observeUser(uid: String, listener: ValueEventListener) {
-        users.child(uid).addValueEventListener(listener)
+    /**
+     * Crea el documento del usuario si no existe, por ejemplo en cuentas que se registraron antes
+     * de usar Firestore. Se hace en una transacción para no pisar los datos de un registro en curso.
+     */
+    fun ensureUserExists(uid: String, email: String): Task<Void?> {
+        val document = users.document(uid)
+        return firestore.runTransaction { transaction ->
+            if (!transaction.get(document).exists()) {
+                transaction.set(document, User(email = email))
+            }
+            null
+        }
     }
 
-    fun stopObservingUser(uid: String, listener: ValueEventListener) {
-        users.child(uid).removeEventListener(listener)
+    /** Escucha los cambios del documento del usuario. Hay que llamar remove() al terminar. */
+    fun observeUser(
+        uid: String,
+        onChange: (User?) -> Unit,
+        onError: (Exception) -> Unit,
+    ): ListenerRegistration = users.document(uid).addSnapshotListener { snapshot, error ->
+        if (error != null) onError(error)
+        else onChange(snapshot?.toObject(User::class.java))
     }
+
+    /**
+     * Escucha a todos los usuarios en línea. Cuando uno se desconecta deja de cumplir la
+     * consulta y desaparece de la lista.
+     */
+    fun observeOnlineUsers(
+        onChange: (List<OnlineUser>) -> Unit,
+        onError: (Exception) -> Unit,
+    ): ListenerRegistration = users.whereEqualTo("online", true)
+        .addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                onError(error)
+                return@addSnapshotListener
+            }
+            onChange(
+                snapshot?.documents.orEmpty().mapNotNull { document ->
+                    document.toObject(User::class.java)?.let { OnlineUser(document.id, it) }
+                }
+            )
+        }
 
     fun updateProfile(uid: String, name: String, phone: String): Task<Void> =
-        users.child(uid).updateChildren(mapOf("name" to name, "phone" to phone))
+        users.document(uid).update(mapOf("name" to name, "phone" to phone))
 
     /** Sube la foto a Storage (profile_photos/{uid}.jpg) y devuelve su URL de descarga. */
     fun uploadPhoto(uid: String, uri: Uri): Task<Uri> {
@@ -40,30 +76,47 @@ class UserRepository(
     }
 
     fun updatePhotoUrl(uid: String, url: String): Task<Void> =
-        users.child(uid).child("photoUrl").setValue(url)
+        users.document(uid).update("photoUrl", url)
 
-    fun observeOnlineUsers(listener: ValueEventListener) {
-        onlineUsers.addValueEventListener(listener)
-    }
-
-    fun stopObservingOnlineUsers(listener: ValueEventListener) {
-        onlineUsers.removeEventListener(listener)
-    }
-
-    /** Guarda la ubicación actual y marca al usuario en línea. */
-    fun updateLocation(uid: String, latitude: Double, longitude: Double): Task<Void> =
-        users.child(uid).updateChildren(
-            mapOf("online" to true, "latitude" to latitude, "longitude" to longitude)
+    /** Marca al usuario en línea y empieza un recorrido nuevo. */
+    fun startSharing(uid: String): Task<Void> =
+        users.document(uid).update(
+            mapOf(
+                "online" to true,
+                "route" to emptyList<GeoPoint>(),
+                "lastSeen" to System.currentTimeMillis(),
+            )
         )
 
-    fun setOffline(uid: String): Task<Void> = users.child(uid).child("online").setValue(false)
+    /** Guarda la posición actual y la agrega al recorrido. */
+    fun updateLocation(uid: String, latitude: Double, longitude: Double): Task<Void> =
+        users.document(uid).update(
+            mapOf(
+                "online" to true,
+                "latitude" to latitude,
+                "longitude" to longitude,
+                "route" to FieldValue.arrayUnion(GeoPoint(latitude, longitude)),
+                "lastSeen" to System.currentTimeMillis(),
+            )
+        )
 
-    /** Si la app se cierra o se pierde la conexión, el servidor marca al usuario como fuera de línea. */
-    fun setOfflineOnDisconnect(uid: String) {
-        users.child(uid).child("online").onDisconnect().setValue(false)
-    }
+    /** Avisa que el usuario sigue en línea aunque no se haya movido. */
+    fun keepAlive(uid: String): Task<Void> =
+        users.document(uid).update("lastSeen", System.currentTimeMillis())
+
+    /** Marca al usuario fuera de línea y borra su recorrido y su posición. */
+    fun setOffline(uid: String): Task<Void> =
+        users.document(uid).update(
+            mapOf(
+                "online" to false,
+                "route" to emptyList<GeoPoint>(),
+                "latitude" to FieldValue.delete(),
+                "longitude" to FieldValue.delete(),
+            )
+        )
 
     private companion object {
-        const val MAX_ONLINE_USERS = 100
+        // Nombre de la base de datos creada en la consola de Firebase (no es la base "(default)")
+        const val DATABASE_ID = "taller-3"
     }
 }
