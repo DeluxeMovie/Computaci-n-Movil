@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -42,9 +44,10 @@ import com.example.taller_3.R
 
 /**
  * Foto de perfil con un botón para cambiarla. Si no hay foto muestra la inicial del nombre.
- * Al tocar el botón se pide el permiso de la cámara y se abre la vista previa para tomar la foto.
+ * Hay dos formas de cambiarla: tomar una foto con la cámara (pide su permiso y abre la vista previa)
+ * o elegir una imagen de la galería (no necesita permisos).
  *
- * @param onPhotoTaken se llama con el Uri de la foto tomada.
+ * @param onPhotoSelected se llama con el Uri de la foto tomada o elegida.
  */
 @Composable
 fun ProfilePhoto(
@@ -52,7 +55,7 @@ fun ProfilePhoto(
     name: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    onPhotoTaken: (Uri) -> Unit = {},
+    onPhotoSelected: (Uri) -> Unit = {},
 ) {
     val context = LocalContext.current
     var showCamera by rememberSaveable { mutableStateOf(false) }
@@ -63,6 +66,12 @@ fun ProfilePhoto(
     ) { granted ->
         cameraDenied = !granted
         showCamera = granted
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) onPhotoSelected(uri)
     }
 
     fun openCamera() {
@@ -93,7 +102,7 @@ fun ProfilePhoto(
                     modifier = Modifier.fillMaxSize(),
                     onPhotoTaken = { uri ->
                         showCamera = false
-                        onPhotoTaken(uri)
+                        onPhotoSelected(uri)
                     },
                 )
                 IconButton(
@@ -131,8 +140,20 @@ fun ProfilePhoto(
                     modifier = photoModifier,
                 )
             }
-            TextButton(onClick = { openCamera() }, enabled = enabled) {
-                Text(stringResource(R.string.change_photo))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = { openCamera() }, enabled = enabled) {
+                    Text(stringResource(R.string.take_photo))
+                }
+                TextButton(
+                    onClick = {
+                        galleryLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
+                    enabled = enabled,
+                ) {
+                    Text(stringResource(R.string.choose_from_gallery))
+                }
             }
         }
         if (cameraDenied) {

@@ -84,7 +84,7 @@ fun ProfileScreen(
                 imageUrl = currentUser.photoUrl,
                 name = currentUser.name,
                 enabled = state !is ProfileState.Loading,
-                onPhotoTaken = { uri ->
+                onPhotoSelected = { uri ->
                     viewModel.clearError()
                     viewModel.updatePhoto(uri)
                 },

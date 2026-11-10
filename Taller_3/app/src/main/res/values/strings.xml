@@ -21,7 +21,7 @@
     <string name="forgot_password">Forgot password?</string>
     <string name="save_changes">Save changes</string>
     <string name="change_password">Change password</string>
-    <string name="change_photo">Change photo</string>
+    <string name="choose_from_gallery">Choose from gallery</string>
     <string name="close_camera">Close camera</string>
     <string name="switch_camera">Switch camera</string>
     <string name="take_photo">Take photo</string>
