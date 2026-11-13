@@ -80,19 +80,25 @@ class FirestoreUserRepository(
         "online" to online,
     )
 
+    // Se lee con get() y conversiones seguras: getString/getLong/... lanzan una excepcion si el campo
+    // tiene otro tipo (por ejemplo documentos viejos con el telefono guardado como texto)
     private fun DocumentSnapshot.toUserInfo(): UserInfo? {
         if (!exists()) return null
         return UserInfo(
-            displayName = getString("displayName").orEmpty(),
-            photo = getString("photo"),
-            phone = getLong("phone") ?: 0L,
-            online = getBoolean("online") ?: false,
-            latitude = getDouble("latitude"),
-            longitude = getDouble("longitude"),
+            displayName = (get("displayName") as? String).orEmpty(),
+            photo = get("photo") as? String,
+            phone = when (val phone = get("phone")) {
+                is Number -> phone.toLong()
+                is String -> phone.filter { it.isDigit() }.toLongOrNull() ?: 0L
+                else -> 0L
+            },
+            online = get("online") as? Boolean ?: false,
+            latitude = (get("latitude") as? Number)?.toDouble(),
+            longitude = (get("longitude") as? Number)?.toDouble(),
             route = (get("route") as? List<*>).orEmpty()
                 .filterIsInstance<GeoPoint>()
                 .map { RoutePoint(it.latitude, it.longitude) },
-            lastSeen = getLong("lastSeen") ?: 0L,
+            lastSeen = (get("lastSeen") as? Number)?.toLong() ?: 0L,
         )
     }
 
