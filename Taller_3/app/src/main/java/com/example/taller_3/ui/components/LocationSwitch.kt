@@ -22,6 +22,7 @@ fun LocationSwitch(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     ElevatedCard(modifier = modifier) {
         Row(
@@ -29,11 +30,11 @@ fun LocationSwitch(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             Text(
-                text = stringResource(if (checked) R.string.location_on else R.string.location_off),
+                text = stringResource(if (checked) R.string.location_switch_on_text else R.string.location_switch_off_text),
                 style = MaterialTheme.typography.titleMedium,
             )
             Spacer(Modifier.width(12.dp))
-            Switch(checked = checked, onCheckedChange = onCheckedChange)
+            Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
         }
     }
 }

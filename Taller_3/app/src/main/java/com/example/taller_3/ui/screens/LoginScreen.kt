@@ -1,5 +1,6 @@
 package com.example.taller_3.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,7 +37,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taller_3.R
 import com.example.taller_3.ui.components.ErrorMessage
 import com.example.taller_3.ui.components.LoginForm
-import com.example.taller_3.utils.asString
 import com.example.taller_3.viewmodels.AuthEvent
 import com.example.taller_3.viewmodels.AuthState
 import com.example.taller_3.viewmodels.AuthViewModel
@@ -49,10 +50,16 @@ fun LoginScreen(
     viewModel: AuthViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
-            if (event is AuthEvent.NavigateToHome) goHome()
+            when (event) {
+                is AuthEvent.NavigateToHome -> goHome()
+                is AuthEvent.ShowMessage ->
+                    Toast.makeText(context, event.text.asString(context), Toast.LENGTH_SHORT).show()
+                else -> Unit
+            }
         }
     }
 
@@ -84,7 +91,7 @@ fun LoginScreen(
                     )
                 }
                 Text(
-                    text = stringResource(R.string.login_title),
+                    text = stringResource(R.string.login_screen_title_text),
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,

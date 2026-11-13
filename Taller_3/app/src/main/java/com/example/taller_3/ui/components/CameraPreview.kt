@@ -6,6 +6,7 @@ import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.viewfinder.compose.MutableCoordinateTransformer
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -24,26 +25,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taller_3.R
+import com.example.taller_3.ui.theme.Taller_3Theme
 import com.example.taller_3.viewmodels.CameraViewModel
 
-/**
- * Vista previa de la cámara con un botón para cambiar de lente y otro para tomar la foto.
- * Al tocar la vista previa la cámara enfoca en ese punto.
- *
- * @param onPhotoTaken se llama con el Uri de la foto una vez guardada.
- */
 @Composable
 fun CameraPreviewContent(
     modifier: Modifier = Modifier,
     viewModel: CameraViewModel = viewModel(),
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
-    onPhotoTaken: (Uri) -> Unit = {},
+    onPhotoTaken: (Uri) -> Unit = { _ -> }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -69,29 +66,46 @@ fun CameraPreviewContent(
                     }
             )
         }
+        //Top start switch camera button
         FilledTonalIconButton(
             onClick = { viewModel.toggleCameraLens() },
             modifier = Modifier
                 .padding(12.dp)
                 .align(Alignment.TopStart)
         ) {
-            Icon(Icons.Default.Cameraswitch, contentDescription = stringResource(R.string.switch_camera))
+            Icon(Icons.Default.Cameraswitch, contentDescription = stringResource(R.string.camera_preview_switch_camera_icon))
         }
-        FilledIconButton(
-            onClick = {
-                viewModel.takePhoto(context) { uri -> if (uri != null) onPhotoTaken(uri) }
-                Toast.makeText(context, context.getString(R.string.taking_photo), Toast.LENGTH_SHORT).show()
-            },
+        //Bottom buttons
+        Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(12.dp)
-                .size(64.dp)
         ) {
-            Icon(
-                Icons.Default.Camera,
-                contentDescription = stringResource(R.string.take_photo),
-                modifier = Modifier.size(48.dp)
-            )
+            FilledIconButton(
+                onClick = {
+                    viewModel.takePhoto(context = context) { uri ->
+                        if (uri != null) {
+                            onPhotoTaken(uri)
+                        }
+                    }
+                    Toast.makeText(context, context.getString(R.string.camera_preview_taking_photo_toast), Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.size(64.dp)
+            ) {
+                Icon(
+                    Icons.Default.Camera,
+                    contentDescription = stringResource(R.string.camera_preview_take_photo_icon),
+                    modifier = Modifier.size(48.dp)
+                )
+            }
         }
+    }
+}
+
+@Composable
+@Preview
+fun CameraPreviewContentPreview() {
+    Taller_3Theme() {
+        CameraPreviewContent(modifier = Modifier.size(500.dp), onPhotoTaken = {})
     }
 }

@@ -1,15 +1,14 @@
 package com.example.taller_3.viewmodels
 
-import com.example.taller_3.utils.toUiText
-import com.example.taller_3.utils.UiText
-import com.example.taller_3.R
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.example.taller_3.models.User
-import com.example.taller_3.repository.UserRepository
+import com.example.taller_3.R
+import com.example.taller_3.utils.UiText
+import com.example.taller_3.utils.orResource
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.auth.auth
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,8 +31,7 @@ sealed interface AuthEvent {
 }
 
 class AuthViewModel(
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
-    private val userRepository: UserRepository = UserRepository(),
+    private val auth: FirebaseAuth = Firebase.auth,
 ) : ViewModel() {
     private val _state = MutableStateFlow<AuthState>(
         auth.currentUser?.let { AuthState.Authenticated(it) } ?: AuthState.Idle
@@ -43,17 +41,7 @@ class AuthViewModel(
     private val _currentUser = MutableStateFlow(auth.currentUser)
     val currentUser: StateFlow<FirebaseUser?> = _currentUser.asStateFlow()
 
-    // Datos guardados en la base de datos (nombre, foto...) del usuario con sesión activa
-    private val _profile = MutableStateFlow<User?>(null)
-    val profile: StateFlow<User?> = _profile.asStateFlow()
-
-    private var observedUid: String? = null
-    private var profileRegistration: ListenerRegistration? = null
-
-    private val authListener = FirebaseAuth.AuthStateListener {
-        _currentUser.value = it.currentUser
-        observeProfile(it.currentUser?.uid)
-    }
+    private val authListener = FirebaseAuth.AuthStateListener { _currentUser.value = it.currentUser }
 
     init {
         auth.addAuthStateListener(authListener)
@@ -61,55 +49,18 @@ class AuthViewModel(
 
     override fun onCleared() {
         auth.removeAuthStateListener(authListener)
-        observeProfile(null)
-    }
-
-    // Cambia de usuario observado al iniciar o cerrar sesión
-    private fun observeProfile(uid: String?) {
-        if (uid == observedUid) return
-        profileRegistration?.remove()
-        profileRegistration = null
-        _profile.value = null
-        observedUid = uid
-        if (uid != null) {
-            // Si la cuenta no tiene documento en Firestore se crea con el email de Auth
-            userRepository.ensureUserExists(uid, auth.currentUser?.email.orEmpty())
-            profileRegistration = userRepository.observeUser(
-                uid,
-                onChange = { _profile.value = it },
-                onError = { _profile.value = null },
-            )
-        }
     }
 
     private val _events = Channel<AuthEvent>(Channel.BUFFERED)
     val events: Flow<AuthEvent> = _events.receiveAsFlow()
 
-    fun register(name: String, email: String, phone: String, password: String) {
+    fun register(email: String, password: String) {
         if (!validate(email, password)) return
-        if (name.isBlank() || phone.isBlank()) {
-            _state.value = AuthState.Error(UiText.Resource(R.string.error_name_phone_required))
-            return
-        }
         _state.value = AuthState.Loading
-        var createdUser: FirebaseUser? = null
         auth.createUserWithEmailAndPassword(email.trim(), password)
-            .onSuccessTask { result ->
-                val user = result.user!!
-                createdUser = user
-                // Online y ubicación quedan con sus valores por defecto, no se piden en el registro
-                userRepository.saveUser(user.uid, User(name = name, email = email.trim(), phone = phone))
-                    .continueWith { user }
-            }
             .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    _state.value = AuthState.Authenticated(task.result)
-                    _events.trySend(AuthEvent.NavigateToHome)
-                } else {
-                    // Si falló guardar los datos, se elimina la cuenta para no dejarla incompleta
-                    createdUser?.delete()
-                    _state.value = AuthState.Error(task.exception.toUiText())
-                }
+                _state.value = authResult(task.isSuccessful, if (task.isSuccessful) task.result?.user else null, task.exception)
+                if (_state.value is AuthState.Authenticated) _events.trySend(AuthEvent.NavigateToHome)
             }
     }
 
@@ -125,19 +76,39 @@ class AuthViewModel(
 
     fun forgotPassword(email: String) {
         if (email.isBlank()) {
-            _state.value = AuthState.Error(UiText.Resource(R.string.error_email_required))
+            _state.value = AuthState.Error(UiText.Resource(R.string.auth_view_model_email_required_error))
             return
         }
         _state.value = AuthState.Loading
         auth.sendPasswordResetEmail(email.trim())
             .addOnCompleteListener { task ->
                 _state.value = if (task.isSuccessful) {
-                    _events.trySend(AuthEvent.ShowMessage(UiText.Resource(R.string.password_reset_sent)))
+                    _events.trySend(AuthEvent.ShowMessage(UiText.Resource(R.string.auth_view_model_password_reset_sent_message)))
                     AuthState.PasswordResetSent(email.trim())
                 } else {
-                    AuthState.Error(task.exception.toUiText())
+                    AuthState.Error(task.exception?.localizedMessage.orResource(R.string.auth_view_model_unknown_error))
                 }
             }
+    }
+
+    // Fails with a recent-login error if the session is old; the user must sign in again.
+    fun updatePassword(newPassword: String, onDone: (Boolean) -> Unit = {}) {
+        val user = auth.currentUser
+        if (user == null) {
+            _state.value = AuthState.Error(UiText.Resource(R.string.auth_view_model_no_user_error))
+            onDone(false)
+            return
+        }
+        _state.value = AuthState.Loading
+        user.updatePassword(newPassword).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                _state.value = AuthState.Authenticated(user)
+                _events.trySend(AuthEvent.ShowMessage(UiText.Resource(R.string.auth_view_model_password_updated_message)))
+            } else {
+                _state.value = AuthState.Error(task.exception?.localizedMessage.orResource(R.string.auth_view_model_unknown_error))
+            }
+            onDone(task.isSuccessful)
+        }
     }
 
     fun logout() {
@@ -152,15 +123,15 @@ class AuthViewModel(
 
     private fun authResult(ok: Boolean, user: FirebaseUser?, e: Exception?): AuthState =
         if (ok && user != null) AuthState.Authenticated(user)
-        else AuthState.Error(e.toUiText())
+        else AuthState.Error(e?.localizedMessage.orResource(R.string.auth_view_model_unknown_error))
 
     private fun validate(email: String, password: String): Boolean {
         val error = when {
-            email.isBlank() -> R.string.error_email_required
-            password.isBlank() -> R.string.error_password_required
+            email.isBlank() -> UiText.Resource(R.string.auth_view_model_email_required_error)
+            password.isBlank() -> UiText.Resource(R.string.auth_view_model_password_required_error)
             else -> return true
         }
-        _state.value = AuthState.Error(UiText.Resource(error))
+        _state.value = AuthState.Error(error)
         return false
     }
 }

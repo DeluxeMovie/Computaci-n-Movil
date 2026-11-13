@@ -1,61 +1,110 @@
 <resources>
     <string name="app_name">Taller_3</string>
 
-    <!-- Navegación -->
-    <string name="back">Back</string>
-    <string name="menu">Menu</string>
-    <string name="profile">Profile</string>
-    <string name="logout">Logout</string>
-    <string name="user_default_name">User</string>
-    <string name="forgot_password_screen">Forgot Password Screen</string>
+    <!-- Naming: {component}_{purpose}_{uiElement} -->
 
-    <!-- Formularios -->
-    <string name="name">Name</string>
-    <string name="email">Email</string>
-    <string name="phone_number">Phone number</string>
-    <string name="password">Password</string>
-    <string name="current_password">Current password</string>
-    <string name="new_password">New password</string>
-    <string name="login">Login</string>
-    <string name="login_title">Welcome back!</string>
-    <string name="register">Register</string>
-    <string name="register_title">Sign up!</string>
-    <string name="forgot_password">Forgot password?</string>
-    <string name="save_changes">Save changes</string>
-    <string name="change_password">Change password</string>
-    <string name="choose_from_gallery">Choose from gallery</string>
-    <string name="close_camera">Close camera</string>
-    <string name="switch_camera">Switch camera</string>
-    <string name="take_photo">Take photo</string>
-    <string name="taking_photo">Taking photo…</string>
-    <string name="camera_permission_denied">Camera permission is required to take a photo</string>
-    <string name="show_password">Show password</string>
-    <string name="hide_password">Hide password</string>
-    <string name="dismiss_error">Dismiss error</string>
-    <string name="profile_picture_of">Profile picture of %1$s</string>
-    <string name="last_login">Last login: %1$s</string>
+    <!-- LoginForm -->
+    <string name="login_form_email_label">Email</string>
+    <string name="login_form_email_invalid_supporting_text">Enter a valid email address</string>
+    <string name="login_form_password_label">Password</string>
+    <string name="login_form_password_invalid_supporting_text">At least 8 characters and one special symbol</string>
+    <string name="login_form_show_password_icon">Show password</string>
+    <string name="login_form_hide_password_icon">Hide password</string>
+    <string name="login_form_login_button">Login</string>
+    <string name="login_form_register_button">Register</string>
+    <string name="login_form_forgot_password_button">Forgot password?</string>
 
-    <!-- Validaciones -->
-    <string name="invalid_email">Enter a valid email address</string>
-    <string name="invalid_phone">Enter a valid phone number</string>
-    <string name="invalid_password">At least 8 characters and one special symbol</string>
+    <!-- RegisterForm -->
+    <string name="register_form_email_label">Email</string>
+    <string name="register_form_email_invalid_supporting_text">Enter a valid email address</string>
+    <string name="register_form_display_name_label">Display name</string>
+    <string name="register_form_display_name_invalid_supporting_text">Enter a display name</string>
+    <string name="register_form_phone_label">Phone</string>
+    <string name="register_form_phone_invalid_supporting_text">Enter a valid phone number</string>
+    <string name="register_form_password_label">Password</string>
+    <string name="register_form_password_invalid_supporting_text">At least 8 characters and one special symbol</string>
+    <string name="register_form_confirm_password_label">Confirm password</string>
+    <string name="register_form_password_mismatch_supporting_text">Passwords do not match</string>
+    <string name="register_form_show_password_icon">Show password</string>
+    <string name="register_form_hide_password_icon">Hide password</string>
+    <string name="register_form_register_button">Register</string>
 
-    <!-- Mapa -->
-    <string name="location_on">Location on</string>
-    <string name="location_off">Location off</string>
-    <string name="you">You</string>
-    <string name="location_permission_required">Location permission is required to share your location</string>
+    <!-- EditForm -->
+    <string name="edit_form_email_label">Email</string>
+    <string name="edit_form_display_name_label">Display name</string>
+    <string name="edit_form_phone_label">Phone</string>
+    <string name="edit_form_phone_invalid_supporting_text">Enter a valid phone number</string>
+    <string name="edit_form_save_changes_button">Save changes</string>
+    <string name="edit_form_new_password_label">New password</string>
+    <string name="edit_form_password_invalid_supporting_text">At least 8 characters and one special symbol</string>
+    <string name="edit_form_confirm_password_label">Confirm new password</string>
+    <string name="edit_form_password_mismatch_supporting_text">Passwords do not match</string>
+    <string name="edit_form_show_password_icon">Show password</string>
+    <string name="edit_form_hide_password_icon">Hide password</string>
+    <string name="edit_form_change_password_button">Change password</string>
 
-    <!-- Mensajes -->
-    <string name="profile_updated">Profile updated</string>
-    <string name="photo_updated">Photo updated</string>
-    <string name="password_changed">Password changed</string>
-    <string name="password_reset_sent">Password reset email sent</string>
+    <!-- ProfileImage -->
+    <string name="profile_image_profile_picture_image">Profile picture</string>
+    <string name="profile_image_take_picture_icon">Take profile picture</string>
+    <string name="profile_image_captured_photo_image">Captured photo</string>
+    <string name="profile_image_remove_photo_icon">Remove photo</string>
+    <string name="profile_image_camera_permission_text">Camera permission is required to take a photo</string>
+    <string name="profile_image_choose_from_gallery_button">Choose from gallery</string>
 
-    <!-- Errores -->
-    <string name="error_unknown">Unknown error</string>
-    <string name="error_email_required">Email is required</string>
-    <string name="error_password_required">Password is required</string>
-    <string name="error_name_phone_required">Name and phone number are required</string>
-    <string name="error_passwords_required">Current and new password are required</string>
+    <!-- UserPortrait -->
+    <string name="user_portrait_profile_picture_image">Profile picture of %1$s</string>
+    <string name="user_portrait_last_login_text">Last login: %1$s</string>
+
+    <!-- CameraPreview -->
+    <string name="camera_preview_switch_camera_icon">Switch camera</string>
+    <string name="camera_preview_take_photo_icon">Take photo</string>
+    <string name="camera_preview_taking_photo_toast">Taking photo…</string>
+
+    <!-- ErrorMessage -->
+    <string name="error_message_dismiss_icon">Dismiss error</string>
+
+    <!-- LocationSwitch -->
+    <string name="location_switch_on_text">Location on</string>
+    <string name="location_switch_off_text">Location off</string>
+
+    <!-- NoPermissionCard -->
+    <string name="no_permission_card_message_text">Location permission was denied, the map cannot share your location</string>
+
+    <!-- RequestPermissionCard -->
+    <string name="request_permission_card_message_text">Location is needed to share your position, please grant the permission</string>
+    <string name="request_permission_card_request_button">Request permission</string>
+
+    <!-- NavHost -->
+    <string name="nav_host_profile_item">Profile</string>
+    <string name="nav_host_logout_button">Logout</string>
+    <string name="nav_host_open_menu_icon">Open navigation menu</string>
+    <string name="nav_host_open_profile_icon">Open profile</string>
+    <string name="nav_host_back_icon">Back</string>
+    <string name="nav_host_user_fallback_text">User</string>
+    <string name="nav_host_last_login_fallback_text">-</string>
+
+    <!-- LoginScreen -->
+    <string name="login_screen_title_text">Welcome back!</string>
+
+    <!-- RegisterScreen -->
+    <string name="register_screen_title_text">Sign up!</string>
+    <string name="register_screen_profile_save_error_message">Could not save the user profile</string>
+
+    <!-- ProfileScreen -->
+    <string name="profile_screen_guest_fallback_text">Guest</string>
+    <string name="profile_screen_image_updated_toast">Profile image updated</string>
+    <string name="profile_screen_updated_toast">Profile updated</string>
+
+    <!-- ForgotPasswordScreen -->
+    <string name="forgot_password_screen_title_text">Forgot Password Screen</string>
+
+    <!-- ViewModels -->
+    <string name="auth_view_model_email_required_error">Email is required</string>
+    <string name="auth_view_model_password_required_error">Password is required</string>
+    <string name="auth_view_model_no_user_error">No user signed in</string>
+    <string name="auth_view_model_unknown_error">Unknown error</string>
+    <string name="auth_view_model_password_reset_sent_message">Password reset email sent</string>
+    <string name="auth_view_model_password_updated_message">Password updated</string>
+    <string name="firestore_view_model_unknown_error">Unknown error</string>
+    <string name="storage_view_model_unknown_error">Unknown error</string>
 </resources>

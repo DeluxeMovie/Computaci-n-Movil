@@ -27,24 +27,22 @@ import kotlinx.coroutines.flow.update
 
 data class CameraPreviewState(
     val surfaceRequest: SurfaceRequest? = null,
-    val useBackLens: Boolean = false,
+    val useBackLens: Boolean = true,
+    val lastCapturedImageUri: Uri? = null,
 )
 
-/**
- * Controla la cámara (CameraX) que se usa para tomar la foto de perfil.
- * Empieza con la cámara frontal porque lo habitual es tomarse una selfie.
- */
 class CameraViewModel : ViewModel() {
+    // Used to set up a link between the Camera and your UI.
     private val _uiState = MutableStateFlow(CameraPreviewState())
     val uiState: StateFlow<CameraPreviewState> = _uiState.asStateFlow()
 
-    // Se usan para controlar la cámara y para enfocar al tocar la pantalla
+    // Used for camera control and tap-to-focus functionality.
     private var surfaceMeteringPointFactory: SurfaceOrientedMeteringPointFactory? = null
     private var cameraControl: CameraControl? = null
     private var lifecycleOwner: LifecycleOwner? = null
     private var processCameraProvider: ProcessCameraProvider? = null
-    private var selector = CameraSelector.DEFAULT_FRONT_CAMERA
-    private val imageCapture = ImageCapture.Builder()
+    private var selector = CameraSelector.DEFAULT_BACK_CAMERA
+    private var imageCapture = ImageCapture.Builder()
         .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
         .build()
 
@@ -78,15 +76,19 @@ class CameraViewModel : ViewModel() {
     fun tapToFocus(tapCoords: Offset) {
         val point = surfaceMeteringPointFactory?.createPoint(tapCoords.x, tapCoords.y)
         if (point != null) {
-            cameraControl?.startFocusAndMetering(FocusMeteringAction.Builder(point).build())
+            val meteringAction = FocusMeteringAction.Builder(point).build()
+            cameraControl?.startFocusAndMetering(meteringAction)
         }
     }
 
     fun toggleCameraLens() {
         val nextUseBackLens = !_uiState.value.useBackLens
         _uiState.update { it.copy(useBackLens = nextUseBackLens) }
-        selector = if (nextUseBackLens) CameraSelector.DEFAULT_BACK_CAMERA
-        else CameraSelector.DEFAULT_FRONT_CAMERA
+        selector = if (nextUseBackLens) {
+            CameraSelector.DEFAULT_BACK_CAMERA
+        } else {
+            CameraSelector.DEFAULT_FRONT_CAMERA
+        }
 
         val owner = lifecycleOwner
         val provider = processCameraProvider
@@ -97,10 +99,10 @@ class CameraViewModel : ViewModel() {
         }
     }
 
-    /** Toma la foto y la guarda en la galería (MediaStore). Retorna su Uri, o null si falló. */
     fun takePhoto(context: Context, onPhotoCaptured: (Uri?) -> Unit = {}) {
+        // OutputFileOptions.file is null for MediaStore targets, so save to a MediaStore Uri instead.
         val values = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, "PROFILE_IMG_${System.currentTimeMillis()}.jpg")
+            put(MediaStore.Images.Media.DISPLAY_NAME, "CHAT_IMG_${System.currentTimeMillis()}.jpg")
             put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
         }
         val outputOptions = ImageCapture.OutputFileOptions.Builder(
@@ -113,11 +115,14 @@ class CameraViewModel : ViewModel() {
             ContextCompat.getMainExecutor(context),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    onPhotoCaptured(outputFileResults.savedUri)
+                    val imageUri = outputFileResults.savedUri
+                    Log.w("CameraPreviewViewModel", "Photo saved to: $imageUri")
+                    _uiState.update { it.copy(lastCapturedImageUri = imageUri) }
+                    onPhotoCaptured(imageUri)
                 }
 
                 override fun onError(exception: ImageCaptureException) {
-                    Log.e("CameraViewModel", "Photo capture failed", exception)
+                    Log.e("CameraPreviewViewModel", "Photo capture failed", exception)
                     onPhotoCaptured(null)
                 }
             }

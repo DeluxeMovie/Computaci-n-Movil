@@ -10,5 +10,5 @@ import androidx.compose.ui.Modifier
 fun ForgotPasswordScreen(
     modifier: Modifier = Modifier,
 ) {
-    Text(text = stringResource(R.string.forgot_password_screen), modifier = modifier)
+    Text(text = stringResource(R.string.forgot_password_screen_title_text), modifier = modifier)
 }

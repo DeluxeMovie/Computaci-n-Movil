@@ -1,7 +1,5 @@
 package com.example.taller_3.ui.screens
 
-import com.example.taller_3.utils.asString
-import com.example.taller_3.R
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,59 +7,66 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.taller_3.ui.components.ChangePasswordForm
-import com.example.taller_3.ui.components.ErrorMessage
-import com.example.taller_3.ui.components.ProfileForm
-import com.example.taller_3.ui.components.ProfilePhoto
-import com.example.taller_3.viewmodels.ProfileEvent
-import com.example.taller_3.viewmodels.ProfileState
-import com.example.taller_3.viewmodels.ProfileViewModel
+import com.example.taller_3.R
+import com.example.taller_3.data.UserInfo
+import com.example.taller_3.ui.components.EditForm
+import com.example.taller_3.ui.components.ProfileImage
+import com.example.taller_3.viewmodels.AuthEvent
+import com.example.taller_3.viewmodels.AuthState
+import com.example.taller_3.viewmodels.AuthViewModel
+import com.example.taller_3.viewmodels.FirestoreEvent
+import com.example.taller_3.viewmodels.FirestoreViewModel
+import com.example.taller_3.viewmodels.StorageEvent
+import com.example.taller_3.viewmodels.StorageViewModel
 
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
-    viewModel: ProfileViewModel = viewModel()
+    viewModel: AuthViewModel = viewModel(),
+    firestoreViewModel: FirestoreViewModel = viewModel(),
+    storageViewModel: StorageViewModel = viewModel(),
 ) {
-    val context = LocalContext.current
-    val user by viewModel.user.collectAsState()
-    val state by viewModel.state.collectAsState()
-    // Al cambiar esta llave el formulario de contraseña se vacía
-    var passwordFormKey by remember { mutableIntStateOf(0) }
+    val currentUser by viewModel.currentUser.collectAsState()
+    val profile by firestoreViewModel.state.collectAsState()
+    val userInfo = profile.user ?: UserInfo(
+        displayName = currentUser?.displayName?.takeIf { it.isNotBlank() }
+            ?: currentUser?.email
+            ?: stringResource(R.string.profile_screen_guest_fallback_text),
+        photo = currentUser?.photoUrl?.toString(),
+    )
 
-    DisposableEffect(viewModel) {
-        viewModel.clearError()
-        viewModel.startObserving()
-        onDispose { viewModel.stopObserving() }
-    }
+    val uid = currentUser?.uid
+    val authState by viewModel.state.collectAsState()
+    val storageState by storageViewModel.state.collectAsState()
+    val busy = authState is AuthState.Loading || profile.loading || storageState.uploading
+    val context = LocalContext.current
+
+    fun toast(message: String) = Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
     LaunchedEffect(viewModel) {
-        viewModel.events.collect { event ->
-            val message = when (event) {
-                ProfileEvent.ProfileUpdated -> context.getString(R.string.profile_updated)
-                ProfileEvent.PhotoUpdated -> context.getString(R.string.photo_updated)
-                ProfileEvent.PasswordChanged -> {
-                    passwordFormKey++
-                    context.getString(R.string.password_changed)
-                }
-            }
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        viewModel.events.collect { if (it is AuthEvent.ShowMessage) toast(it.text.asString(context)) }
+    }
+    LaunchedEffect(authState) {
+        (authState as? AuthState.Error)?.let {
+            toast(it.message.asString(context))
+            viewModel.clearError()
         }
+    }
+    LaunchedEffect(firestoreViewModel) {
+        firestoreViewModel.events.collect { if (it is FirestoreEvent.Error) toast(it.message.asString(context)) }
+    }
+    LaunchedEffect(storageViewModel) {
+        storageViewModel.events.collect { if (it is StorageEvent.Error) toast(it.message.asString(context)) }
     }
 
     Column(
@@ -71,44 +76,38 @@ fun ProfileScreen(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        if (state is ProfileState.Loading || user == null) {
-            CircularProgressIndicator(Modifier.padding(8.dp))
-        }
-        ErrorMessage(
-            message = (state as? ProfileState.Error)?.message?.asString(),
-            onDismiss = viewModel::clearError,
-            modifier = Modifier.padding(horizontal = 16.dp),
+        ProfileImage(
+            imageUrl = userInfo.photo,
+            enabled = !busy,
+            onImageCaptured = { uri ->
+                if (uri == null || uid == null) return@ProfileImage
+                // The profile is only updated once the image has a Firebase Storage URL.
+                storageViewModel.uploadUserFile(uid, "profile_image.jpg", uri) { url ->
+                    if (url != null) {
+                        firestoreViewModel.updateUser(uid, mapOf("photo" to url)) { ok ->
+                            if (ok) toast(context.getString(R.string.profile_screen_image_updated_toast))
+                        }
+                    }
+                }
+            },
+            modifier = Modifier.padding(16.dp),
         )
-        user?.let { currentUser ->
-            ProfilePhoto(
-                imageUrl = currentUser.photoUrl,
-                name = currentUser.name,
-                enabled = state !is ProfileState.Loading,
-                onPhotoSelected = { uri ->
-                    viewModel.clearError()
-                    viewModel.updatePhoto(uri)
-                },
-            )
-            ProfileForm(
-                name = currentUser.name,
-                email = currentUser.email,
-                phone = currentUser.phone,
-                enabled = state !is ProfileState.Loading,
-                onSave = { name, phone ->
-                    viewModel.clearError()
-                    viewModel.updateProfile(name, phone)
-                },
-            )
-            HorizontalDivider(Modifier.padding(horizontal = 16.dp))
-            key(passwordFormKey) {
-                ChangePasswordForm(
-                    enabled = state !is ProfileState.Loading,
-                    onChangePassword = { current, new ->
-                        viewModel.clearError()
-                        viewModel.changePassword(current, new)
-                    },
-                )
-            }
-        }
+        EditForm(
+            email = currentUser?.email.orEmpty(),
+            displayName = userInfo.displayName,
+            phone = userInfo.phone.takeIf { it != 0L }?.toString().orEmpty(),
+            enabled = !busy,
+            onUserInfoChange = { displayName, phone ->
+                if (uid == null) return@EditForm
+                firestoreViewModel.updateUser(
+                    uid,
+                    mapOf(
+                        "displayName" to displayName,
+                        "phone" to (phone.filter { it.isDigit() }.toLongOrNull() ?: 0L),
+                    ),
+                ) { ok -> if (ok) toast(context.getString(R.string.profile_screen_updated_toast)) }
+            },
+            onPasswordChange = { password -> viewModel.updatePassword(password) },
+        )
     }
 }

@@ -39,6 +39,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -52,15 +53,17 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import com.example.taller_3.data.UserInfo
 import com.example.taller_3.ui.components.UserPortrait
 import com.example.taller_3.ui.screens.ForgotPasswordScreen
 import com.example.taller_3.ui.screens.HomeScreen
 import com.example.taller_3.ui.screens.LoginScreen
 import com.example.taller_3.ui.screens.ProfileScreen
 import com.example.taller_3.ui.screens.RegisterScreen
-import com.example.taller_3.utils.DateUtil
+import com.example.taller_3.utils.DateUtils
 import com.example.taller_3.viewmodels.AuthViewModel
-import com.example.taller_3.viewmodels.MapViewModel
+import com.example.taller_3.viewmodels.FirestoreViewModel
+import com.example.taller_3.viewmodels.LocationViewModel
 import kotlinx.coroutines.launch
 
 private fun NavBackStack<NavKey>.navigate(route: Routes, clearStack: Boolean = false) {
@@ -77,9 +80,16 @@ private fun NavBackStack<NavKey>.navigate(route: Routes, clearStack: Boolean = f
 @Composable
 fun NavHost(modifier: Modifier = Modifier) {
     val authViewModel: AuthViewModel = viewModel()
-    val mapViewModel: MapViewModel = viewModel()
+    val firestoreViewModel: FirestoreViewModel = viewModel()
+    val locationViewModel: LocationViewModel = viewModel()
     val currentUser by authViewModel.currentUser.collectAsState()
-    val profile by authViewModel.profile.collectAsState()
+    val profile by firestoreViewModel.state.collectAsState()
+
+    // El perfil del usuario con sesión activa se escucha en tiempo real para mostrarlo en el drawer
+    DisposableEffect(currentUser?.uid) {
+        currentUser?.uid?.let(firestoreViewModel::observeUser)
+        onDispose { firestoreViewModel.stopObserving() }
+    }
 
     val backStack = rememberNavBackStack(
         if (currentUser != null) Routes.Home else Routes.Login
@@ -118,15 +128,16 @@ fun NavHost(modifier: Modifier = Modifier) {
                             .verticalScroll(rememberScrollState())
                     ) {
                         UserPortrait(
-                            imageUrl = profile?.photoUrl,
-                            name = profile?.name?.takeIf { it.isNotBlank() }
-                                ?: currentUser?.email
-                                ?: stringResource(R.string.user_default_name),
-                            lastLogin = currentUser?.metadata?.lastSignInTimestamp?.let(DateUtil::format) ?: "-",
+                            user = profile.user ?: UserInfo(
+                                displayName = currentUser?.email
+                                    ?: stringResource(R.string.nav_host_user_fallback_text),
+                            ),
+                            email = currentUser?.email,
+                            lastLogin = currentUser?.metadata?.lastSignInTimestamp?.let(DateUtils::format) ?: stringResource(R.string.nav_host_last_login_fallback_text),
                             modifier = Modifier.padding(vertical = 16.dp)
                         )
                         NavigationDrawerItem(
-                            label = { Text(text = stringResource(R.string.profile)) },
+                            label = { Text(text = stringResource(R.string.nav_host_profile_item)) },
                             icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
                             selected = backStack.lastOrNull() == Routes.Profile,
                             onClick = {
@@ -139,7 +150,11 @@ fun NavHost(modifier: Modifier = Modifier) {
                     TextButton(
                         onClick = {
                             // Primero se marca al usuario fuera de línea, mientras la sesión sigue activa
-                            mapViewModel.stopSharing { authViewModel.logout() }
+                            locationViewModel.stopLocationUpdates()
+                            locationViewModel.clearRoute()
+                            val uid = currentUser?.uid
+                            if (uid != null) firestoreViewModel.goOffline(uid) { authViewModel.logout() }
+                            else authViewModel.logout()
                             scope.launch { drawerState.close() }
                             backStack.navigate(Routes.Login, clearStack = true)
                         },
@@ -147,7 +162,7 @@ fun NavHost(modifier: Modifier = Modifier) {
                             .align(Alignment.End)
                             .padding(vertical = 8.dp)
                     ) {
-                        Text(text = stringResource(R.string.logout))
+                        Text(text = stringResource(R.string.nav_host_logout_button))
                         Spacer(Modifier.width(8.dp))
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Logout,
@@ -176,7 +191,7 @@ fun NavHost(modifier: Modifier = Modifier) {
                                 IconButton(onClick = { backStack.removeLastOrNull() }) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = stringResource(R.string.back)
+                                        contentDescription = stringResource(R.string.nav_host_back_icon)
                                     )
                                 }
                             } else {
@@ -189,7 +204,7 @@ fun NavHost(modifier: Modifier = Modifier) {
                                 }) {
                                     Icon(
                                         imageVector = Icons.Filled.Menu,
-                                        contentDescription = stringResource(R.string.menu)
+                                        contentDescription = stringResource(R.string.nav_host_open_menu_icon)
                                     )
                                 }
                             }
@@ -199,7 +214,7 @@ fun NavHost(modifier: Modifier = Modifier) {
                                 IconButton(onClick = { backStack.navigate(Routes.Profile) }) {
                                     Icon(
                                         imageVector = Icons.Outlined.Settings,
-                                        contentDescription = stringResource(R.string.profile)
+                                        contentDescription = stringResource(R.string.nav_host_open_profile_icon)
                                     )
                                 }
                             }
@@ -247,7 +262,7 @@ fun NavHost(modifier: Modifier = Modifier) {
                         is Routes.Register -> NavEntry(key) {
                             RegisterScreen(
                                 goHome = { backStack.navigate(Routes.Home, clearStack = true) },
-                                viewModel = authViewModel
+                                authViewModel = authViewModel
                             )
                         }
 
@@ -256,7 +271,7 @@ fun NavHost(modifier: Modifier = Modifier) {
                         }
 
                         is Routes.Profile -> NavEntry(key) {
-                            ProfileScreen()
+                            ProfileScreen(viewModel = authViewModel)
                         }
 
                         else -> {
