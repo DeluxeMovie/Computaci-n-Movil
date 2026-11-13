@@ -8,6 +8,7 @@ import com.example.taller_3.repository.Subscription
 import com.example.taller_3.repository.UserRepository
 import com.example.taller_3.utils.UiText
 import com.example.taller_3.utils.orResource
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -135,6 +136,8 @@ class FirestoreViewModel(
     override fun onCleared() {
         stopObserving()
         onlineUsersListener?.cancel()
+        // Si se cierra la app sin apagar la localizacion, el usuario no debe quedar en linea para los demas
+        FirebaseAuth.getInstance().currentUser?.uid?.let { goOffline(it) }
     }
 
     private fun emitError(e: Throwable) {

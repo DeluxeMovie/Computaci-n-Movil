@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -37,6 +38,7 @@ import kotlinx.coroutines.delay
 // Cada cuánto un usuario quieto avisa que sigue en línea, y cuánto se espera antes de ocultarlo
 private const val HEARTBEAT_MILLIS = 60_000L
 private const val STALE_MILLIS = 3 * 60_000L
+private const val STALE_CHECK_MILLIS = 30_000L
 
 /**
  * Pantalla principal: un mapa con la posición y el recorrido del usuario y los de los demás
@@ -101,8 +103,13 @@ fun HomeScreen(
     }
 
     // Solo se muestran los demás usuarios con posición que siguen reportándose
-    val otherUsers = remember(firestoreState.onlineUsers, uid) {
-        val now = System.currentTimeMillis()
+    val now by produceState(System.currentTimeMillis()) {
+        while (true) {
+            delay(STALE_CHECK_MILLIS)
+            value = System.currentTimeMillis()
+        }
+    }
+    val otherUsers = remember(firestoreState.onlineUsers, uid, now) {
         firestoreState.onlineUsers.filter { (id, user) ->
             id != uid && user.latitude != null && user.longitude != null &&
                     now - user.lastSeen <= STALE_MILLIS
