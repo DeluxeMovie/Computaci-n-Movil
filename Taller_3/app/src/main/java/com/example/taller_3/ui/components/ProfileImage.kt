@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -46,6 +47,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
+import com.example.taller_3.utils.ImageCompressor
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.example.taller_3.R
 import com.example.taller_3.ui.theme.Taller_3Theme
 
@@ -66,6 +71,14 @@ fun ProfileImage(
     size: Dp = 240.dp,
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    // La foto se reduce antes de subirla a Storage para que el registro no se demore
+    fun reportImage(uri: Uri) {
+        scope.launch {
+            onImageCaptured(withContext(Dispatchers.IO) { ImageCompressor.compress(context, uri) })
+        }
+    }
     var showCamera by rememberSaveable { mutableStateOf(false) }
     var cameraDenied by rememberSaveable { mutableStateOf(false) }
     var confirmedUri by rememberSaveable { mutableStateOf<Uri?>(null) }
@@ -85,7 +98,7 @@ fun ProfileImage(
             showCamera = false
             capturedUri = null
             confirmedUri = uri
-            onImageCaptured(uri)
+            reportImage(uri)
         }
     }
 
@@ -132,7 +145,7 @@ fun ProfileImage(
                         onPhotoTaken = { uri ->
                             capturedUri = uri
                             confirmedUri = uri
-                            onImageCaptured(uri)
+                            reportImage(uri)
                         },
                     )
                 } else if (displayed != null) {

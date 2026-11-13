@@ -1,5 +1,6 @@
 package com.example.taller_3.ui.components
 
+import android.graphics.Bitmap
 import android.location.Location
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -84,6 +85,8 @@ fun MapComponent(
             showIndoor = BooleanValue(true)
         }
     }
+    // El puck pide tambien imagen de sombra y de direccion; vacias para que Mapbox no registre errores
+    val emptyPuckImage = remember { ImageHolder.from(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)) }
     val followPuckOptions = remember {
         FollowPuckViewportStateOptions.Builder().zoom(defaultZoom).pitch(defaultPitch).build()
     }
@@ -110,7 +113,11 @@ fun MapComponent(
         MapEffect(isRecording, myMarker) { mapView ->
             mapView.location.updateSettings {
                 pulsingEnabled = true
-                locationPuck = LocationPuck2D(topImage = ImageHolder.from(myMarker))
+                locationPuck = LocationPuck2D(
+                    topImage = ImageHolder.from(myMarker),
+                    bearingImage = emptyPuckImage,
+                    shadowImage = emptyPuckImage,
+                )
                 enabled = isRecording
             }
             if (isRecording) mapViewportState.transitionToFollowPuckState(followPuckOptions)
